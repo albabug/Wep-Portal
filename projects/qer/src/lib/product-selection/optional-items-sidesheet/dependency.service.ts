@@ -27,6 +27,7 @@
 import { Injectable } from '@angular/core';
 import { EuiLoadingService } from '@elemental-ui/core';
 import { PortalShopServiceitems, ServiceItemHierarchy } from 'imx-api-qer';
+import { CCC_ServiceItemHierarchy } from 'imx-api-ccc';
 import { EntitySchema, IWriteValue, MultiValue, TypedEntity } from 'imx-qbm-dbts';
 import { QerApiService } from '../../qer-api-client.service';
 import { ServiceItemHierarchyExtended, ServiceItemTreeWrapper } from '../service-item-order.interface';
@@ -41,10 +42,24 @@ export class DependencyService {
     return this.qerClient.typedClient.PortalShopServiceitems.GetSchema();
   }
 
+  // public async get(parameters: { UID_Person?: string; UID_AccProductParent: string }): Promise<ServiceItemHierarchy> {
+  //   return this.qerClient.v2Client.portal_shop_serviceitems_dependencies_get(parameters.UID_AccProductParent, {
+  //     UID_Person: parameters?.UID_Person,
+  //   });
+  // }
+
   public async get(parameters: { UID_Person?: string; UID_AccProductParent: string }): Promise<ServiceItemHierarchy> {
-    return this.qerClient.v2Client.portal_shop_serviceitems_dependencies_get(parameters.UID_AccProductParent, {
-      UID_Person: parameters?.UID_Person,
-    });
+    const result = await this.qerClient.customClient.portal_shop_serviceitems_dependencies_extended_get(
+      parameters.UID_AccProductParent,
+      {
+        UID_Person: parameters?.UID_Person
+      }
+    );
+  
+    const result2 = await this.qerClient.v2Client.portal_shop_serviceitems_dependencies_get(parameters.UID_AccProductParent, {
+          UID_Person: parameters?.UID_Person,
+        });
+    return result;
   }
 
   public countOptional(tree: ServiceItemHierarchy): number {
@@ -62,7 +77,7 @@ export class DependencyService {
   }
 
   public extendTree(
-    tree: ServiceItemHierarchy,
+    tree: CCC_ServiceItemHierarchy,
     options?: {
       Recipients?: string[];
       UidRecipients?: string[];
@@ -71,11 +86,17 @@ export class DependencyService {
       isIndeterminate: boolean;
       parentChecked: boolean;
       parentUid?: string;
+      CustomProperty01: string;
+      CustomProperty02: string;
+      OptionSelected: string;
     }
   ): ServiceItemHierarchyExtended {
     const extendedTree: ServiceItemHierarchyExtended = {
       Display: tree.Display,
       UidAccProduct: tree.UidAccProduct,
+      CustomProperty01: tree.CustomProperty01,
+      CustomProperty02: tree.CustomProperty02,
+      OptionSelected: tree['OptionSelected'],
       Mandatory: [],
       Optional: [],
       ...options,
@@ -89,6 +110,9 @@ export class DependencyService {
           isIndeterminate: !(options.isChecked && options.parentChecked),
           parentUid,
           parentChecked: options.isChecked,
+          CustomProperty01: childTree.CustomProperty01,
+          CustomProperty02: childTree.CustomProperty02,
+          OptionSelected: ""
         })
       );
     }
@@ -100,6 +124,9 @@ export class DependencyService {
           isIndeterminate: !(options.isChecked && options.parentChecked),
           parentUid,
           parentChecked: options.isChecked,
+          CustomProperty01: childTree.CustomProperty01,
+          CustomProperty02: childTree.CustomProperty02,
+          OptionSelected: ""
         })
       );
     }
@@ -134,6 +161,9 @@ export class DependencyService {
               isChecked: true,
               isIndeterminate: false,
               parentChecked: true,
+              CustomProperty01: hierarchy['CustomProperty01'],
+              CustomProperty02: hierarchy['CustomProperty02'],
+              OptionSelected: parentItem['OptionSelected']
             });
             allTrees.trees.push(extendedhierarchy);
             optionalCount += thisCount;

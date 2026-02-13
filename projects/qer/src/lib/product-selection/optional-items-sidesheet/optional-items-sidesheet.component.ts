@@ -71,9 +71,9 @@ export class OptionalItemsSidesheetComponent implements OnInit, OnDestroy {
       projectConfig: QerProjectConfig;
     }
   ) {
-    this.dataSource.data = this.data.serviceItemTree.trees;
+    this.dataSource.data = this.data.serviceItemTree.trees.map(node => this.initNode(node));
+    // this.dataSource.data = this.data.serviceItemTree.trees;
     this.treeControl.dataNodes = this.dataSource.data;
-
     this.subscriptions.push(
       this.sideSheetRef.closeClicked().subscribe(async () => {
         if (
@@ -82,11 +82,12 @@ export class OptionalItemsSidesheetComponent implements OnInit, OnDestroy {
             Message: '#LDS#Are you sure you want to cancel the request process and not add the products to your shopping cart?',
           })
         ) {
-          this.sideSheetRef.close();
+          this.sideSheetRef.close("abort");
         }
       })
     );
   }
+
 
   public hasChild = (_: number, tree: ServiceItemHierarchyExtended) =>
     (!!tree.Mandatory && tree.Mandatory.length > 0) || (!!tree.Optional && tree.Optional.length > 0);
@@ -234,5 +235,33 @@ export class OptionalItemsSidesheetComponent implements OnInit, OnDestroy {
       return inputValues.includes(values);
     }
     return inputValues.findIndex((i) => values.includes(i)) !== -1;
+  }
+
+  private initNode(node: any): any {
+    if (!node.OptionSelected?.trim()) {
+      node.OptionSelected = node.CustomProperty01?.split('|')[0] || null;
+    }
+    if (node.isMandatory || node.OptionSelected !== null)
+    {
+      node.isChecked = !!node.OptionSelected;
+    }
+  
+  
+    if (node.Optional?.length) {
+      node.Optional = node.Optional.map(child => this.initNode(child));
+    }
+    if (node.Mandatory?.length) {
+      node.Mandatory = node.Mandatory.map(child => this.initNode(child));
+    }
+    if ((node.Optional?.length || 0) > 0 || (node.Mandatory?.length || 0) > 0) {
+    this.treeControl.expand(node);
+    }
+    
+    return node;
+  }
+
+  private onOptionChange(node: any, value: string): void {
+    // node.OptionSelected = value;
+    node.isChecked = true; // flegga checkbox se cambia option
   }
 }

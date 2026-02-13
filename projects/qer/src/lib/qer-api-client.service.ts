@@ -26,6 +26,7 @@
 
 import { Injectable } from '@angular/core';
 import { V2Client, Client, TypedClient } from 'imx-api-qer';
+import { V2Client as CCCClient } from 'imx-api-ccc';
 import { ApiClient } from 'imx-qbm-dbts';
 import { AppConfigService, ClassloggerService, ImxTranslationProviderService } from 'qbm';
 
@@ -34,12 +35,18 @@ import { AppConfigService, ClassloggerService, ImxTranslationProviderService } f
 })
 export class QerApiService {
   private tc: TypedClient;
+  private readonly cccClient: CCCClient;
+
   public get typedClient(): TypedClient {
     return this.tc;
   }
 
   public get client(): V2Client {
     return this.v2Client;
+  }
+
+  public get customClient(): CCCClient {
+    return this.cccClient;
   }
 
   public readonly v2Client: V2Client;
@@ -51,14 +58,19 @@ export class QerApiService {
   constructor(
     private readonly config: AppConfigService,
     private readonly logger: ClassloggerService,
-    private readonly translationProvider: ImxTranslationProviderService) {
+    private readonly translationProvider: ImxTranslationProviderService
+  ) {
     try {
       this.logger.debug(this, 'Initializing QER API service');
 
-      // Use schema loaded by QBM client
       const schemaProvider = config.client;
+
+      // QER API Client
       this.v2Client = new V2Client(this.config.apiClient, schemaProvider);
       this.tc = new TypedClient(this.v2Client, this.translationProvider);
+
+      // CCC API Client
+      this.cccClient = new CCCClient(this.config.apiClient, schemaProvider);
     } catch (e) {
       this.logger.error(this, e);
     }

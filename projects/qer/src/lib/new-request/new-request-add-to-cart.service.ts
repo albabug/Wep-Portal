@@ -176,7 +176,14 @@ export class NewRequestAddToCartService {
 
       // first get all optional service items
       if (this.projectConfig?.ITShopConfig?.VI_ITShop_AddOptionalProductsOnInsert) {
-        optionalItemsForPersons = await this.openOptionalSideSheet(serviceItems);
+        const result = await this.openOptionalSideSheet(serviceItems);
+        if (result === "abort") {
+          // L'utente ha annullato: non sottomettere nulla
+          return [];
+        }
+
+        // Altrimenti procedi normalmente:
+        optionalItemsForPersons = result; // qui ci sarà il ServiceItemOrder.requestables[]
       }
 
       setTimeout(() => this.busyIndicator.show());
@@ -205,10 +212,10 @@ export class NewRequestAddToCartService {
     return productBundleItemsForPersons;
   }
 
-  private async openOptionalSideSheet(serviceItems: PortalShopServiceitems[]): Promise<RequestableProductForPerson[]> {
+  private async openOptionalSideSheet(serviceItems: PortalShopServiceitems[]): Promise<RequestableProductForPerson[]|"abort"> {
     const serviceItemTree = await this.optionalItemsService.checkForOptionalTree(serviceItems, this.orchestration.recipients);
     if (serviceItemTree?.totalOptional > 0) {
-      const selectedOptionalOrder: ServiceItemOrder = await this.sidesheetService
+      const selectedOptionalOrder: ServiceItemOrder|"abort" = await this.sidesheetService
         .open(OptionalItemsSidesheetComponent, {
           title: await this.translate.get('#LDS#Heading Request Optional Products').toPromise(),
           padding: '0px',
@@ -222,8 +229,15 @@ export class NewRequestAddToCartService {
         })
         .afterClosed()
         .toPromise();
-      if (selectedOptionalOrder) {
-        return selectedOptionalOrder.requestables;
+      if (selectedOptionalOrder === "abort")
+      {
+        return "abort";
+      } 
+      else
+      {
+        if (selectedOptionalOrder) {
+          return selectedOptionalOrder.requestables;
+        }
       }
     }
     return [];

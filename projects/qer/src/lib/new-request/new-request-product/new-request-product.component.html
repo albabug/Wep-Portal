@@ -16,7 +16,7 @@
       [isLoading]="isLoading"
       [headerText]="'#LDS#Heading Service Categories' | translate"
       [nodeContent]="categoryNodeContent"
-      [expandWidth]="'600px'"
+      [expandWidth]="'400px'"
       [sideNavExpanded]="categorySideNavExpanded"
       [manageExpandedExternally]="true"
       (sideNavExpandedChange)="categoryObserveExpanded($event)"
@@ -70,6 +70,30 @@
           </div>
         </ng-template>
       </imx-data-table-column>
+      <imx-data-table-column [entityColumn]="productApi.entitySchema?.Columns['CustomProperty01']">
+        <ng-template let-prod>
+          <div class="imx-request-col-text" [matTooltip]="prod.GetEntity().GetColumn('CustomProperty01').GetDisplayValue()">
+            {{ prod.GetEntity().GetColumn('CustomProperty01').GetDisplayValue() }}
+          </div>
+        </ng-template>
+      </imx-data-table-column>
+      <imx-data-table-column [entityColumn]="productApi.entitySchema?.Columns['CustomProperty02']">
+        <ng-template let-prod>
+          <div class="imx-request-col-text" [matTooltip]="prod.GetEntity().GetColumn('CustomProperty02').GetDisplayValue()">
+            {{ prod.GetEntity().GetColumn('CustomProperty02').GetDisplayValue() }}
+          </div>
+        </ng-template>
+      </imx-data-table-column>
+      <imx-data-table-generic-column columnName="Options" columnLabel="{{ '#LDS#Options' | translate }}" style="width:fit-content; margin-right: 10px; text-align: left;">
+        <ng-template let-prod>
+          <mat-select style="max-width: 120px; width:fit-content;" [(ngModel)]="prod.OptionSelected" *ngIf="prod.OptionsList !== null" (click)="$event.stopPropagation(); $event.preventDefault();">
+            <mat-option *ngFor="let option of prod.OptionsList" [value]="option">
+              {{ option }}
+            </mat-option>
+          </mat-select>
+        </ng-template>
+      </imx-data-table-generic-column>
+
       <imx-data-table-column [entityColumn]="productApi.entitySchema?.Columns['Description']">
         <ng-template let-prod>
           <div class="imx-request-col-text imx-request-col-text-long" [matTooltip]="prod.GetEntity().GetColumn('Description').GetDisplayValue()">

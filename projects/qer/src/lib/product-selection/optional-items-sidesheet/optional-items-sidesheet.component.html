@@ -2,6 +2,7 @@
   <eui-alert type="info" colored="true" condensed="true">
     <span>{{ '#LDS#The following products have optional products. You can select the products you want to request additionally. NOTE: You can select child products only if you have selected the corresponding parent product as well.' | translate }}</span>
   </eui-alert>
+
   <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
     <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle matTreeNodePadding>
       <li class="mat-tree-node">
@@ -28,7 +29,7 @@
   </mat-tree>
 </div>
 
-<div eui-sidesheet-actions >
+<div eui-sidesheet-actions>
   <p class="imx-selected-products">
     <span>{{ '#LDS#Selected optional products' | translate }}</span>
     <eui-badge class="imx-badge" color="orange">{{ selected }}</eui-badge>
@@ -40,26 +41,83 @@
 </div>
 
 <ng-template #treeNodeTemplate let-node>
-  <mat-checkbox *ngIf="!node?.Recipients" [checked]="node.isChecked" [disabled]="node.isMandatory || !node.parentChecked || node.isIndeterminate" [indeterminate]="node.isIndeterminate" (change)="onChange($event, node)">
-    <span>{{ node.Display }}</span>
-    <div class="imx-subtext">
-      {{ (node.isMandatory ?
-          '#LDS#Mandatory product' :
-          '#LDS#Optional product') | translate
-      }}
+  <div class="imx-tree-root" *ngIf="!node?.Recipients">
+    <div style="display: table; width: 100%;">
+      <div style="display: table-row;">
+        <div style="display: table-cell; vertical-align: middle; width: 250px;">
+          <mat-checkbox
+            [checked]="node.isChecked"
+            [disabled]="node.isMandatory || !node.parentChecked || node.isIndeterminate"
+            [indeterminate]="node.isIndeterminate"
+            (change)="onChange($event, node)">
+            <span>{{ node.Display }}</span>
+          </mat-checkbox>
+        </div>
+        <div style="display: table-cell; vertical-align: middle;" *ngIf="node.CustomProperty01">
+          <mat-select
+            [(value)]="node.OptionSelected"
+            (selectionChange)="onOptionChange(node, $event.value)"
+            (click)="$event.stopPropagation()"
+            (mousedown)="$event.stopPropagation()">
+            <mat-option *ngFor="let option of node.CustomProperty01.split('|')" [value]="option">
+              {{ option }}
+            </mat-option>
+          </mat-select>
+        </div>
+      </div>
     </div>
-  </mat-checkbox>
-  <div class="imx-tree-root" *ngIf="node?.Recipients?.length == 1">
-    <span>{{ node.Display }}</span>
     <div class="imx-subtext">
-      {{'#LDS#Recipient' | translate}}
-      {{node.Recipients[0]}}
+      {{ (node.isMandatory ? '#LDS#Mandatory product' : '#LDS#Optional product') | translate }}
     </div>
   </div>
-  <div class="imx-tree-root" *ngIf="node?.Recipients?.length > 1">
-    <span>{{ node.Display }}</span>
+
+  <!-- Caso 1: Un solo recipient -->
+  <div class="imx-tree-root" *ngIf="node?.Recipients?.length == 1">
+    <div style="display: table; width: 100%;">
+      <div style="display: table-row;">
+        <div style="display: table-cell; vertical-align: middle;">
+          <span>{{ node.Display }}</span>
+        </div>
+        <div style="display: table-cell; vertical-align: middle; padding-left: 25px;" *ngIf="node.CustomProperty01">
+          <mat-select
+            [(value)]="node.OptionSelected"
+            (selectionChange)="onOptionChange(node, $event.value)"
+            (click)="$event.stopPropagation()"
+            (mousedown)="$event.stopPropagation()">
+            <mat-option *ngFor="let option of node.CustomProperty01.split('|')" [value]="option">
+              {{ option }}
+            </mat-option>
+          </mat-select>
+        </div>
+      </div>
+    </div>
     <div class="imx-subtext">
-      {{getRecipientText(node)}}
+      {{ '#LDS#Recipient' | translate }} {{ node.Recipients[0] }}
+    </div>
+  </div>
+
+  <!-- Caso 2: Più recipient -->
+  <div class="imx-tree-root" *ngIf="node?.Recipients?.length > 1">
+    <div style="display: table; width: 100%;">
+      <div style="display: table-row;">
+        <div style="display: table-cell; vertical-align: middle;">
+          <span>{{ node.Display }}</span>
+        </div>
+        <div style="display: table-cell; vertical-align: middle; padding-left: 25px;" *ngIf="node.CustomProperty01">
+          <mat-select
+            [(value)]="node.OptionSelected"
+            (selectionChange)="onOptionChange(node, $event.value)"
+            (click)="$event.stopPropagation()"
+            (mousedown)="$event.stopPropagation()">
+            <mat-option *ngFor="let option of node.CustomProperty01.split('|')" [value]="option">
+              {{ option }}
+            </mat-option>
+          </mat-select>
+        </div>
+      </div>
+    </div>
+    <div class="imx-subtext">
+      {{ getRecipientText(node) }}
     </div>
   </div>
 </ng-template>

@@ -1,7 +1,4 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
@@ -25,7 +22,26 @@
       "request": "launch",
       "type": "pwa-chrome",
       "url": "http://localhost:4200/",
-      "webRoot": "${workspaceFolder}",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "name": "Launch Chrome with remote debugging",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:4200/",
+      "runtimeExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "runtimeArgs": [
+        "--remote-debugging-port=9222",
+        "--user-data-dir=C:\\temp\\chrome-debug"
+      ],
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "name": "Attach to Chrome",
+      "type": "pwa-chrome",
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}"
     },
     {
       "name": "QER App Portal (Chrome)",
@@ -33,13 +49,18 @@
       "type": "pwa-chrome",
       "url": "http://localhost:4200/",
       "webRoot": "${workspaceFolder}",
+      "trace": true,
+      "runtimeExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-profile",
+      "disableNetworkCache": true
     },
+    
     {
       "name": "QER App Portal (Chrome - SSL)",
       "request": "launch",
       "type": "pwa-chrome",
       "url": "https://localhost:4200/",
-      "webRoot": "${workspaceFolder}",
+      "webRoot": "${workspaceFolder}"
     },
     {
       "name": "QER App Portal (Chrome, API Server)",
@@ -60,6 +81,7 @@
         "webpack:///ng://att/lib/*": "${workspaceFolder}/projects/att/src/lib/*"
       }
     },
+    
     {
       "name": "QBM Landing Page (Chrome)",
       "type": "chrome",
@@ -91,7 +113,6 @@
         "webpack:///ng://qbm/lib/*": "${workspaceFolder}/projects/qbm/src/lib/*",
         "webpack:///ng://qer/lib/*": "${workspaceFolder}/projects/qer/src/lib/*"
       }
-    },
-
+    }
   ]
 }

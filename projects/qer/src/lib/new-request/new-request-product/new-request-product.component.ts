@@ -28,7 +28,7 @@ import { FlatTreeControl } from '@angular/cdk/tree';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { PortalServicecategories, PortalShopServiceitems } from 'imx-api-qer';
-import { CollectionLoadParameters, CompareOperator, DisplayColumns, IClientProperty, IWriteValue, MultiValue } from 'imx-qbm-dbts';
+import { CollectionLoadParameters, CompareOperator, DisplayColumns, ExtendedTypedEntityCollection, IClientProperty, IWriteValue, MultiValue, ValType } from 'imx-qbm-dbts';
 import {
   Busy,
   BusyService,
@@ -322,7 +322,6 @@ export class NewRequestProductComponent implements OnInit, OnDestroy {
     );
 
     this.subscriptions.push(this.selectionService.selectedProductsCleared$.subscribe(() => this.dst?.clearSelection()));
-
     //#endregion
   }
 
@@ -419,8 +418,9 @@ export class NewRequestProductComponent implements OnInit, OnDestroy {
     try {
       const parameters = this.getCollectionLoadParameter();
       let data = await this.productApi.get(parameters);
-
+      
       if (data) {
+        this.GetOptionsFromCP01(data);
         this.dstSettings = {
           dataSource: data,
           displayedColumns: this.displayedProductColumns,
@@ -435,7 +435,8 @@ export class NewRequestProductComponent implements OnInit, OnDestroy {
 
         this.cd.detectChanges();
       }
-    } finally {
+    }
+    finally {
       busy.endBusy();
     }
   }
@@ -504,5 +505,51 @@ export class NewRequestProductComponent implements OnInit, OnDestroy {
     this.orchestration.keywords = productSearchString;
     this.productNavigationState.search = productSearchString;
     await this.getProductData();
+  }
+
+  private GetOptionsFromCP01(data: any): void {
+    let show_column_options = false
+    data.Data.forEach(item => {
+      try {
+        item.OptionsList = null;
+        item.OptionSelected = null;
+        if (item.GetEntity() && item.GetEntity().GetColumn('CustomProperty01')) {
+          const customProperty01 = item.GetEntity().GetColumn('CustomProperty01').GetDisplayValue();
+          const customProperty02 = item.GetEntity().GetColumn('CustomProperty02').GetDisplayValue();
+          if (customProperty01) {
+            let cp01_splitted = customProperty01.split('|');
+            item.OptionsList = cp01_splitted.length > 0 ? cp01_splitted : null;
+            item.OptionSelected = cp01_splitted.length > 0 ? cp01_splitted[0] : null;
+            item.CustomProperty01 = customProperty01;
+            item.CustomProperty02 = customProperty02;
+            show_column_options = true;
+          } 
+        }
+      } catch (error) {
+      }
+    });
+
+    if (show_column_options)
+    {
+      this.displayedProductColumns = [
+        this.productApi.entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME],
+        {
+          ColumnName: 'Options',
+          Type: ValType.String,
+        },
+        this.productApi.entitySchema.Columns.ServiceCategoryFullPath,
+        this.productApi.entitySchema.Columns.Description,  
+        this.productApi.entitySchema.Columns.OrderableStatus,
+      ];
+    }
+    else
+    {
+      this.displayedProductColumns = [
+        this.productApi.entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME],
+        this.productApi.entitySchema.Columns.ServiceCategoryFullPath,
+        this.productApi.entitySchema.Columns.Description,  
+        this.productApi.entitySchema.Columns.OrderableStatus,
+      ];
+    }
   }
 }

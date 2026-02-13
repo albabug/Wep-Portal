@@ -105,4 +105,10 @@ export interface ServiceItemHierarchyExtended {
    * parent uid
    */
   parentUid?: string;
+
+  CustomProperty01: string;
+  
+  CustomProperty02: string;
+
+  OptionSelected: string
 }
